@@ -23,7 +23,7 @@ if [ "$#" -gt 0 ]; then
 fi
 
 CDK_DIR="${CDK_DIR:-cdk}"
-PARAM_FILE="${CDK_DIR}/envs/${ENV}.params.json"
+PARAM_FILE="envs/${ENV}.params.json"
 OUT_DIR="${CDK_DIR}/output/${ENV}"
 VENV_ACTIVATE="${CDK_DIR}/.cdk-venv/bin/activate"
 SYNTH_OUTPUT="${OUT_DIR}/scraper.template.yaml"
