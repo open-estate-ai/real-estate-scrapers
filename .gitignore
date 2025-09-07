@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Scraper-specific virtualenvs inside each folder
+scrapers/*/.venv/
+
+# Build artifacts
+
+dist/
+*.zip
+
+# Scraper build outputs
+scrapers/*/build/
+scrapers/*/_vendor_*/
+scrapers/*/local_out/
+scrapers/*/local_data/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# CDK context/cache
+cdk.out/
+cdk.context.json
+
+
+# Per-scraper env files
+scrapers/*/.env
