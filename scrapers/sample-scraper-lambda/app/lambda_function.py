@@ -6,12 +6,8 @@ from datetime import datetime
 from utils import upload_json_to_s3
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 if not logger.hasHandlers():
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 def parse_buckets(env_val):
     if not env_val:
@@ -30,8 +26,6 @@ def handler(event, context):
     buckets_env = os.environ.get("BUCKETS", "")
     buckets = parse_buckets(buckets_env)
     logger.info("TARGET_URL=%s BUCKETS=%s", target, buckets)
-    logger.info("Event: %s", event)
-    logger.info("Test Anshul Garg")
 
     if not target:
         logger.error("Missing TARGET_URL in environment")

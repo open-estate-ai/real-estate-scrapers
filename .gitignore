@@ -13,6 +13,7 @@ __pycache__/
 venv/
 env/
 ENV/
+.cdk-venv/
 
 # Scraper-specific virtualenvs inside each folder
 scrapers/*/.venv/
@@ -27,6 +28,7 @@ scrapers/*/build/
 scrapers/*/_vendor_*/
 scrapers/*/local_out/
 scrapers/*/local_data/
+scrapers/*/cdk/output/
 
 # IDE/editor files
 .vscode/
