@@ -1,0 +1,13 @@
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+
+
+
+# # Per-scraper env files
+# scrapers/*/.env
+
+# .env
