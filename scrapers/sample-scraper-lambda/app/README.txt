@@ -16,7 +16,7 @@ Files:
 Setup virtual environment (per scraper):
 
 1. Go to the scraper folder:
-   cd scrapers/sample-scraper-lambda
+   cd scrapers/sample-scraper-lambda/app
 
 2. Create a virtual environment for this scraper:
    python3 -m venv .venv

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+
+# Virtual environments
+.venv/
+.cdk-venv/
+
+# Build artifacts
+
+
+
+# Scraper build outputs
+dist/
+*.zip
+build/
+_vendor_*/
+local_data/
+local_out/
+output/
+
+# CDK context/cache
+cdk.out/
+cdk.context.json
+
+
+# Environment variables
+.env
