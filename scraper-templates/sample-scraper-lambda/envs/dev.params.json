@@ -2,6 +2,6 @@
     "ScheduleExpression": "rate(2 hours)",
     "TargetUrl": "https://example.com",
     "BucketNames": [
-        "dev-sample-scraper-bucket-1"
+        "756375699536-ap-south-1-dev-sample-scraper-lambda-raw"
     ]
 }

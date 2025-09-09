@@ -34,19 +34,27 @@ def handler(event, context):
     resp = requests.get(target, timeout=30)
     resp.raise_for_status()
 
-    payload = {
+    # Build a list of records (can append more later if you expand scraping)
+    records = [{
         "scraped_at": datetime.utcnow().isoformat(),
         "status_code": resp.status_code,
         "url": target,
         "headers": dict(resp.headers),
         "text_snippet": resp.text[:4096]
-    }
+    },
+    {
+        "scraped_at": datetime.utcnow().isoformat(),
+        "status_code": resp.status_code,
+        "url": target,
+        "headers": dict(resp.headers),
+        "text_snippet": resp.text[:4096]
+    }]
 
     uploaded = []
     if buckets:
         for b in buckets:
             try:
-                result = upload_json_to_s3(bucket=b, data=payload, prefix=f"scrapers/{context.function_name}")
+                result = upload_json_to_s3(bucket=b, data=records, prefix=f"scrapers/{context.function_name}")
                 logger.info("Uploaded result: %s", result)
                 uploaded.append(result)
             except Exception as e:
