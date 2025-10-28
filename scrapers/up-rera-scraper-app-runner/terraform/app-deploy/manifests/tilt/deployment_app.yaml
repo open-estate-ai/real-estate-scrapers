@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: up-rera-scraper-app-runner
+  name: up-rera-scraper-app-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: up-rera-scraper-app-runner
+  template:
+    metadata:
+      labels:
+        app: up-rera-scraper-app-runner
+
+    spec:
+      containers:
+      - name: up-rera-scraper-app-runner
+        image: up-rera-scraper-app-runner
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http2
+          containerPort: 8080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        readinessProbe:
+          httpGet:
+            path: /healthz/
+            port: http2
+        livenessProbe:
+          httpGet:
+            path: /healthz/
+            port: http2
+        env:
+          - name: K8S_APPNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app']
+          - name: K8S_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        envFrom:
+          - configMapRef:
+              name: app-config
+        
