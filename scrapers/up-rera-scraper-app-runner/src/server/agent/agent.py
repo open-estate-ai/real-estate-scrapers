@@ -5,7 +5,7 @@ from agents import Agent, Runner, trace
 from agents.extensions.models.litellm_model import LitellmModel
 from agents.mcp import MCPServerStdio
 from .context import get_agent_instructions, get_default_query
-from .tools import ingest_scraped_data, upload_to_s3
+from .tools import upload_to_s3
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -71,7 +71,7 @@ async def run_up_rera_scraper_agent(max_projects: int = 20) -> str:
                 name="UP RERA Scraper Agent",
                 instructions=get_agent_instructions(),
                 model=model,
-                tools=[ingest_scraped_data, upload_to_s3],
+                tools=[upload_to_s3],
                 mcp_servers=[mcp_server])
 
             logger.info(

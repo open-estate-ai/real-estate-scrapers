@@ -50,7 +50,6 @@ Step 5: Return a comprehensive summary including:
 
 IMPORTANT NOTES:
 - The scrape_projects_list MCP tool now automatically saves data to avoid passing large payloads through agent parameters
-- The ingest_scraped_data tool verifies the file and provides a summary (file already saved by scraper)
 - The upload_to_s3 tool converts projects to NDJSON format and uploads with partitioned keys
 - Always extract the "saved_file" path from the scraper response before calling other tools
 - S3 upload is optional - only do it if user mentions S3, bucket, or upload in their query
