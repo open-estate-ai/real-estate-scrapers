@@ -9,6 +9,7 @@ import asyncio
 import json
 import re
 import logging
+import os
 from playwright.async_api import async_playwright
 from mcp.server.fastmcp import FastMCP
 from typing import List, Dict, Any
@@ -344,6 +345,8 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
 
             logger.info(f'\n✅ Extraction complete!')
             logger.info(f'   Total projects found: {len(projects)}')
+            # Log first 5 projects for verification
+            logger.info(f'   Sample projects: {projects[:5]}')
 
         except Exception as e:
             logger.error(f'\n❌ Error during scraping: {e}')
@@ -385,7 +388,8 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
     logger.info(
         f"✅ Completed scrape_projects_list: Returning {len(projects)} projects in {duration_seconds:.1f}s")
 
-    return {
+    # Build response object
+    response_data = {
         "success": True,
         "data": {
             "total_projects": len(projects),
@@ -396,6 +400,29 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
         },
         "message": f"Successfully scraped {len(projects)} projects in {duration_seconds:.1f}s"
     }
+
+    # Save to file immediately after scraping
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"up_rera_projects_{timestamp}_{run_id}.json"
+        filepath = f"/tmp/{filename}"
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(response_data, f, indent=2, ensure_ascii=False)
+
+        logger.info(f"💾 Saved scraped data to: {filepath}")
+        logger.info(f"   File size: {os.path.getsize(filepath)} bytes")
+
+        # Add file path to response
+        response_data["data"]["saved_file"] = filepath
+        response_data["message"] = f"Successfully scraped {len(projects)} projects in {duration_seconds:.1f}s and saved to {filepath}"
+
+    except Exception as save_error:
+        logger.error(f"⚠️  Failed to save file: {save_error}")
+        # Don't fail the whole operation, just log the error
+        response_data["data"]["save_error"] = str(save_error)
+
+    return response_data
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')

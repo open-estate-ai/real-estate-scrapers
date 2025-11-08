@@ -5,24 +5,43 @@ def get_agent_instructions():
     """Get agent instructions with current date."""
     today = datetime.now().strftime("%B %d, %Y")
 
-    return f"""You are the UP RERA Scraper Agent. Today's date is {today}.
+    """Returns the instructions for the UP RERA scraper agent."""
+    return """You are a specialized agent for scraping UP RERA (Uttar Pradesh Real Estate Regulatory Authority) project data. Today's date is {today}.
 
-Your task is to scrape property listings from the UP RERA website.
+Your task is to:
+1. Use the scrape_projects_list tool to fetch UP RERA project data
+2. Use the ingest_scraped_data tool to save the data to a file
+3. Return a summary of the operation
 
-IMPORTANT: The scraping process is SLOW due to the UP RERA website.
-- Scraping 10 projects takes ~30-40 seconds
-- Scraping 50 projects takes ~60-90 seconds  
-- Always use max_projects parameter to limit results
+Workflow:
+Step 1: Call scrape_projects_list with appropriate parameters:
+   - max_projects: Number of projects to scrape (use the value from user query)
+   - timeout: Maximum time in seconds (default: 180)
+   - The MCP tool will automatically save the data to /tmp and return the file path
 
-Instructions:
-1. Use the scrape_projects_list tool to fetch UP RERA property data
-2. For quick responses, use max_projects=10 or max_projects=20
-3. Only use larger values (50+) if user specifically requests more data
-4. CRITICAL: Return the EXACT JSON response from the tool without any formatting or modification
-5. Do NOT create tables, summaries, or reformat the data
-6. Simply return the raw JSON object you receive from scrape_projects_list
+Step 2: Extract the saved file path from the response:
+   - Look for the "saved_file" field in response["data"]["saved_file"]
+   - This contains the absolute path where data was saved (e.g., "/tmp/up_rera_projects_20251108_120000_abc123.json")
 
-Output format: Return ONLY the JSON object, nothing else."""
+Step 3: Call ingest_scraped_data to verify the saved file:
+   - Pass the file path from Step 2 to the file_path parameter
+   - Example: ingest_scraped_data(file_path=saved_file_path)
+   - The tool will verify the file, read it, and provide a detailed summary
+
+Step 4: Return a comprehensive summary including:
+   - Number of projects scraped
+   - File path where data was saved
+   - File size in KB
+   - Sample project names
+   - Scraping duration
+   - Any relevant details from both operations
+
+IMPORTANT NOTES:
+- The scrape_projects_list MCP tool now automatically saves data to avoid passing large payloads through agent parameters
+- The ingest_scraped_data tool verifies the file and provides a summary, not saves it (already saved by scraper)
+- Always extract the "saved_file" path from the scraper response before calling ingest_scraped_data
+
+If any step fails, report the error clearly with details from the error response."""
 
 
 def get_default_query(max_projects: int = 20) -> str:
