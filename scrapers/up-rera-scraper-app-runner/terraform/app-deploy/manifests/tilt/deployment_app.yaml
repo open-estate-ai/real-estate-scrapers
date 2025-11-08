@@ -24,11 +24,11 @@ spec:
           containerPort: 8080
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "1Gi"    # Playwright baseline
+            cpu: "500m"      # Browser automation needs more CPU
           limits:
-            memory: "2Gi"
-            cpu: "1000m"
+            memory: "3Gi"    # Headroom for parallel scraping
+            cpu: "2000m"     # Better browser performance
         readinessProbe:
           httpGet:
             path: /healthz/
