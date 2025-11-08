@@ -1,10 +1,11 @@
 import os
 import logging
+from typing import Optional
 from agents import Agent, Runner, trace
 from agents.extensions.models.litellm_model import LitellmModel
 from agents.mcp import MCPServerStdio
 from .context import get_agent_instructions, get_default_query
-from .tools import ingest_scraped_data
+from .tools import ingest_scraped_data, upload_to_s3
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -13,8 +14,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def run_up_rera_scraper_agent() -> str:
-    """Run the UP RERA Scraper Agent with optional topic."""
+async def run_up_rera_scraper_agent(max_projects: int = 20) -> str:
+    """Run the UP RERA Scraper Agent with optional S3 upload.
+
+    S3 configuration is read from environment variables:
+    - S3_BUCKET: S3 bucket name for upload (optional). If not set, only scrapes and verifies.
+    - S3_PREFIX: S3 key prefix for organizing data (default: "up-rera-projects")
+
+    Args:
+        max_projects: Maximum number of projects to scrape (default: 20)
+    """
+    # Read S3 configuration from environment variables
+    s3_bucket = os.environ.get("S3_BUCKET")
+    s3_prefix = os.environ.get("S3_PREFIX", "up-rera-projects")
+
+    logger.info(f"🔧 Configuration:")
+    logger.info(f"   Max Projects: {max_projects}")
+    logger.info(f"   S3 Bucket: {s3_bucket or 'Not configured (no upload)'}")
+    logger.info(f"   S3 Prefix: {s3_prefix}")
 
     os.environ["AWS_REGION_NAME"] = os.environ.get(
         "REGION", "us-east-1")  # LiteLLM's preferred variable
@@ -36,8 +53,13 @@ async def run_up_rera_scraper_agent() -> str:
         # Increase timeout to 300 seconds (5 minutes) for slow scraping
         async with MCPServerStdio(params=params, client_session_timeout_seconds=300) as mcp_server:
             logger.info("✅ Started mcp_servers MCP server")
-            # Get default query with 20 projects for faster response in production
-            query = get_default_query(max_projects=20)
+
+            # Build query based on parameters
+            query = get_default_query(
+                max_projects=max_projects,
+                s3_bucket=s3_bucket,
+                s3_prefix=s3_prefix
+            )
             logger.info(f"📝 Query: {query}")
 
             mcp_tools = await mcp_server.list_tools()
@@ -49,7 +71,7 @@ async def run_up_rera_scraper_agent() -> str:
                 name="UP RERA Scraper Agent",
                 instructions=get_agent_instructions(),
                 model=model,
-                tools=[ingest_scraped_data],
+                tools=[ingest_scraped_data, upload_to_s3],
                 mcp_servers=[mcp_server])
 
             logger.info(

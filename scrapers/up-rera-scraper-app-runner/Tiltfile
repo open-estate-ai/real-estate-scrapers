@@ -8,7 +8,8 @@ AWS_ACCESS_KEY_ID=os.getenv('AWS_ACCESS_KEY_ID', '')
 AWS_SECRET_ACCESS_KEY=os.getenv("AWS_SECRET_ACCESS_KEY", '')
 REGION=os.getenv('REGION', 'ap-south-1')
 LLM_MODEL=os.getenv('LLM_MODEL', 'bedrock/anthropic.claude-3-haiku-20240307-v1:0')
-
+S3_BUCKET=os.getenv('S3_BUCKET', '')
+S3_PREFIX=os.getenv('S3_PREFIX', 'up-rera-projects')
 
 app_config_map_data = {
     'ENV': ENV,
@@ -16,7 +17,9 @@ app_config_map_data = {
     'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
     'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
     'REGION': REGION,
-    'LLM_MODEL': LLM_MODEL
+    'LLM_MODEL': LLM_MODEL,
+    'S3_BUCKET': S3_BUCKET,
+    'S3_PREFIX': S3_PREFIX,
 }
 
 

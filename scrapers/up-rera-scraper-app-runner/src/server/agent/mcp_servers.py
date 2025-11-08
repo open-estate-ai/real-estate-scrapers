@@ -345,8 +345,8 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
 
             logger.info(f'\n✅ Extraction complete!')
             logger.info(f'   Total projects found: {len(projects)}')
-            # Log first 5 projects for verification
-            logger.info(f'   Sample projects: {projects[:5]}')
+            # Log first 3 projects for verification
+            logger.info(f'   Sample projects: {projects[:3]}')
 
         except Exception as e:
             logger.error(f'\n❌ Error during scraping: {e}')
@@ -388,12 +388,12 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
     logger.info(
         f"✅ Completed scrape_projects_list: Returning {len(projects)} projects in {duration_seconds:.1f}s")
 
-    # Build response object
-    response_data = {
+    # Build FULL response object with all projects (for file storage)
+    full_response_data = {
         "success": True,
         "data": {
             "total_projects": len(projects),
-            "projects": projects,
+            "projects": projects,  # All projects included in file
             "run_id": run_id,
             "scraped_at": scrape_end_time.isoformat(),
             "duration_seconds": duration_seconds
@@ -402,27 +402,59 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
     }
 
     # Save to file immediately after scraping
+    filepath = None
+    file_size = 0
+
     try:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"up_rera_projects_{timestamp}_{run_id}.json"
         filepath = f"/tmp/{filename}"
 
         with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(response_data, f, indent=2, ensure_ascii=False)
+            json.dump(full_response_data, f, indent=2, ensure_ascii=False)
 
+        file_size = os.path.getsize(filepath)
         logger.info(f"💾 Saved scraped data to: {filepath}")
-        logger.info(f"   File size: {os.path.getsize(filepath)} bytes")
-
-        # Add file path to response
-        response_data["data"]["saved_file"] = filepath
-        response_data["message"] = f"Successfully scraped {len(projects)} projects in {duration_seconds:.1f}s and saved to {filepath}"
+        logger.info(
+            f"   File size: {file_size:,} bytes ({file_size / 1024:.2f} KB)")
 
     except Exception as save_error:
         logger.error(f"⚠️  Failed to save file: {save_error}")
-        # Don't fail the whole operation, just log the error
-        response_data["data"]["save_error"] = str(save_error)
+        # Return error if file save fails
+        return {
+            "success": False,
+            "error": f"Failed to save file: {str(save_error)}",
+            "message": "Scraping succeeded but file save failed"
+        }
 
-    return response_data
+    # Return LIGHTWEIGHT response to agent (no projects array to avoid token limits)
+    # Include only metadata - tools will read full data from file
+    lightweight_response = {
+        "success": True,
+        "data": {
+            "total_projects": len(projects),
+            "run_id": run_id,
+            "scraped_at": scrape_end_time.isoformat(),
+            "duration_seconds": duration_seconds,
+            "saved_file": filepath,
+            "file_size_bytes": file_size,
+            "file_size_kb": round(file_size / 1024, 2),
+            # Include sample of first 3 projects for verification
+            "sample_projects": [
+                {
+                    "project_name": p.get("project_name", "N/A"),
+                    "rera_number": p.get("rera_number", "N/A"),
+                    "district": p.get("district", "N/A")
+                }
+                for p in projects[:3]
+            ]
+        },
+        "message": f"Successfully scraped {len(projects)} projects in {duration_seconds:.1f}s and saved to {filepath}"
+    }
+
+    logger.info(
+        f"📤 Returning lightweight response (metadata only, {len(projects)} projects in file)")
+    return lightweight_response
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')
