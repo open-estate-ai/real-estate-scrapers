@@ -18,6 +18,20 @@ Instructions:
 1. Use the scrape_projects_list tool to fetch UP RERA property data
 2. For quick responses, use max_projects=10 or max_projects=20
 3. Only use larger values (50+) if user specifically requests more data
-4. Return the scraped data to the user in a clear format
+4. CRITICAL: Return the EXACT JSON response from the tool without any formatting or modification
+5. Do NOT create tables, summaries, or reformat the data
+6. Simply return the raw JSON object you receive from scrape_projects_list
 
-Keep your responses brief and focused on the data."""
+Output format: Return ONLY the JSON object, nothing else."""
+
+
+def get_default_query(max_projects: int = 20) -> str:
+    """Get default query for scraping UP RERA projects.
+
+    Args:
+        max_projects: Maximum number of projects to scrape (default: 20)
+
+    Returns:
+        Query string to send to the agent
+    """
+    return f"Scrape {max_projects} real estate project listings from UP RERA website using the scrape_projects_list tool with max_projects={max_projects}."

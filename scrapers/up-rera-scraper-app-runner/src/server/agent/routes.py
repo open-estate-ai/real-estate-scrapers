@@ -15,6 +15,7 @@ async def run_agent():
     logger.info("Scraping result: %s", result)
     return {
         "service": "UP RERA Scraper",
-        "status": "running",
+        "status": "success",
         "timestamp": datetime.now(UTC).isoformat(),
+        "agent_response": result,  # Human-readable formatted response from agent
     }

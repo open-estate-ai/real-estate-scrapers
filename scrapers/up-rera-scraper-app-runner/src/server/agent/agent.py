@@ -3,8 +3,7 @@ import logging
 from agents import Agent, Runner, trace
 from agents.extensions.models.litellm_model import LitellmModel
 from agents.mcp import MCPServerStdio
-# from .mcp_servers import create_playwright_mcp_server
-from .context import get_agent_instructions
+from .context import get_agent_instructions, get_default_query
 
 # Configure logging
 logging.basicConfig(
@@ -33,12 +32,12 @@ async def run_up_rera_scraper_agent() -> str:
     with trace("UP RERA Scraper Agent Execution"):
 
         params = {"command": "uv", "args": [
-            "run", "./src/server/agent/scrape_projects_mcp_server.py"]}
+            "run", "./src/server/agent/mcp_servers.py"]}
         # Increase timeout to 300 seconds (5 minutes) for slow scraping
         async with MCPServerStdio(params=params, client_session_timeout_seconds=300) as mcp_server:
-            logger.info("✅ Started scrape_projects_mcp_server MCP server")
-            # Limit to 20 projects for faster response in production
-            query = f"Scrape 20 real estate project listings from UP RERA website using the scrape_projects_list tool with max_projects=20."
+            logger.info("✅ Started mcp_servers MCP server")
+            # Get default query with 20 projects for faster response in production
+            query = get_default_query(max_projects=20)
             logger.info(f"📝 Query: {query}")
 
             mcp_tools = await mcp_server.list_tools()
