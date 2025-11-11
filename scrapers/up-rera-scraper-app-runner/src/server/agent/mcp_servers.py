@@ -267,6 +267,38 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
                             'scraped_at': datetime.now().isoformat()
                         }
 
+                        # Generate raw_text for vector DB
+                        raw_text_parts = []
+                        if project['project_name']:
+                            raw_text_parts.append(
+                                f"Project Name: {project['project_name']}")
+                        if project['rera_number']:
+                            raw_text_parts.append(
+                                f"RERA Number: {project['rera_number']}")
+                        if project['promoter_name']:
+                            raw_text_parts.append(
+                                f"Promoter: {project['promoter_name']}")
+                        if project['project_type']:
+                            raw_text_parts.append(
+                                f"Type: {project['project_type']}")
+                        if project['district']:
+                            raw_text_parts.append(
+                                f"District: {project['district']}")
+                        if project['start_date']:
+                            raw_text_parts.append(
+                                f"Start Date: {project['start_date']}")
+                        if project['end_date']:
+                            raw_text_parts.append(
+                                f"End Date: {project['end_date']}")
+                        if project['registration_date']:
+                            raw_text_parts.append(
+                                f"Registration Date: {project['registration_date']}")
+                        if project['detail_link']:
+                            raw_text_parts.append(
+                                f"Details: {project['detail_link']}")
+
+                        project['raw_text'] = " | ".join(raw_text_parts)
+
                         # Only add if we have meaningful data
                         if project['project_name'] or project['rera_number']:
                             projects.append(project)
@@ -303,12 +335,27 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
                                 detail_link = href if href.startswith(
                                     'http') else f'https://www.up-rera.in/{href.lstrip("/")}'
 
+                        # Extract project name from card text (usually first line or after RERA number)
+                        project_name = ''
+                        lines = card_text.split('\n')
+                        for line in lines:
+                            clean_line = line.strip()
+                            if clean_line and 'UPRERAPRJ' not in clean_line:
+                                project_name = clean_line
+                                break
+
                         project = {
+                            'project_name': project_name,
                             'rera_number': rera_number,
                             'detail_link': detail_link,
-                            'raw_text': card_text[:200],  # First 200 chars
                             'scraped_at': datetime.now().isoformat()
                         }
+
+                        # Generate raw_text for vector DB (include all card text + detail link)
+                        raw_text_parts = [card_text.strip()]
+                        if detail_link:
+                            raw_text_parts.append(f"Details: {detail_link}")
+                        project['raw_text'] = " | ".join(raw_text_parts)
 
                         if rera_number or detail_link:
                             projects.append(project)
@@ -338,6 +385,7 @@ async def scrape_projects_list(max_projects: int = 50, timeout: int = 180) -> Di
                         'end_date': '',
                         'registration_date': '',
                         'detail_link': f'https://www.up-rera.in/Frm_View_Project_Details.aspx?id={rera_num.replace("UPRERAPRJ", "")}',
+                        'raw_text': f'RERA Number: {rera_num}. Visit detail link for full project information.',
                         'extracted_from': 'page_text',
                         'note': 'Only RERA number extracted. Visit detail_link for full information.',
                         'scraped_at': datetime.now().isoformat()
