@@ -4,7 +4,7 @@
 
 # ECR repository for the scraper Docker image
 resource "aws_ecr_repository" "scraper" {
-  name                 = "${local.resource_name_prefix_hyphenated}-scraper"
+  name                 = "${lower(var.scraper_name)}-scraper"
   image_tag_mutability = "MUTABLE"
   force_delete         = true # Allow deletion even with images
 
@@ -114,7 +114,7 @@ resource "aws_iam_role_policy" "app_runner_instance_s3_access" {
 
 # App Runner service
 resource "aws_apprunner_service" "scraper_service" {
-  service_name = substr("${local.resource_name_prefix_hyphenated}-scraper-service", 0, 40)
+  service_name = local.app_runner_service_name
 
   source_configuration {
     auto_deployments_enabled = false

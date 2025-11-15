@@ -40,7 +40,7 @@ COPY --chown=app:app --from=build /scrapers/up-rera-scraper-app-runner /scrapers
 
 # Copy Playwright browsers from build stage to app user's home
 COPY --chown=app:app --from=build /root/.cache/ms-playwright /home/app/.cache/ms-playwright
-
+RUN pip install --no-cache-dir uv 
 USER 5555
 
 ENV PATH=/scrapers/up-rera-scraper-app-runner/.venv/bin:$PATH
