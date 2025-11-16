@@ -12,6 +12,93 @@ A web scraper that collects real estate project data from the Uttar Pradesh Real
 * Uses AI agent to coordinate scraping tasks
 * Handles pagination and retries automatically
 
+---
+
+## Scraper Architecture
+
+```mermaid
+flowchart LR
+    User([👤 User/Client])
+    
+    subgraph AWS["☁️ AWS Cloud Infrastructure"]
+        direction TB
+        
+        subgraph AppRunner["🚀 AWS App Runner"]
+            direction LR
+            API["🌐 FastAPI<br/>Port 8080"]
+            Agent["🤖 AI Agent<br/>Scraper"]
+            MCP["⚙️ MCP Server<br/>Scraping Logic"]
+            Browser["🌍 Playwright<br/>Headless Browser"]
+        end
+        
+        subgraph Storage["💾 Storage Layer - ECR & S3"]
+            direction TB
+            ECR[("🐳 AWS ECR<br/>Docker Images")]
+            S3[("📦 AWS S3<br/>Scraped Data<br/><i>year/month/day</i>")]
+        end
+        
+        subgraph AI["🧠 AI Services - Bedrock & OpenAI"]
+            direction TB
+            Bedrock["☁️ AWS Bedrock<br/>Claude Haiku"]
+            OpenAI["📊 OpenAI Platform<br/><i>Traces Only - $0</i>"]
+        end
+    end
+    
+    External["🏢 UP RERA Website<br/>up-rera.in"]
+    
+    User ==>|"1️⃣ HTTP GET<br/>/agents?max_projects=N"| API
+    API ==>|"2️⃣ Coordinate"| Agent
+    Agent ==>|"3️⃣ Call MCP Tool"| MCP
+    MCP ==>|"4️⃣ Launch"| Browser
+    Browser ==>|"5️⃣ Scrape HTML"| External
+    External ==>|"6️⃣ Return Data"| Browser
+    Browser ==>|"7️⃣ Parse JSON"| MCP
+    MCP ==>|"8️⃣ Return Results"| Agent
+    Agent ==>|"9️⃣ Upload NDJSON using Agent Tool"| S3
+    Agent -.->|"🔍 Query LLM"| Bedrock
+    Agent -.->|"📈 Send Traces"| OpenAI
+    API ==>|"🔟 JSON Response"| User
+    
+    ECR -.->|"Pull Image"| AppRunner
+    
+    classDef userStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    classDef apiStyle fill:#FF6B6B,stroke:#C92A2A,stroke-width:3px,color:#fff
+    classDef agentStyle fill:#A855F7,stroke:#7C3AED,stroke-width:3px,color:#fff
+    classDef mcpStyle fill:#10B981,stroke:#059669,stroke-width:3px,color:#fff
+    classDef browserStyle fill:#F59E0B,stroke:#D97706,stroke-width:3px,color:#fff
+    classDef storageStyle fill:#3B82F6,stroke:#1E40AF,stroke-width:3px,color:#fff
+    classDef aiStyle fill:#8B5CF6,stroke:#6D28D9,stroke-width:3px,color:#fff
+    classDef externalStyle fill:#14B8A6,stroke:#0F766E,stroke-width:3px,color:#fff
+    classDef awsStyle fill:#FFF9E6,stroke:#FF9900,stroke-width:3px,color:#232F3E
+    classDef appRunnerStyle fill:#232F3E,stroke:#FF9900,stroke-width:3px,color:#FF9900
+    classDef storageGroupStyle fill:#E6F7FF,stroke:#1890FF,stroke-width:3px,color:#003A70
+    classDef aiGroupStyle fill:#F0E6FF,stroke:#9254DE,stroke-width:3px,color:#531DAB
+    
+    class User userStyle
+    class API apiStyle
+    class Agent agentStyle
+    class MCP mcpStyle
+    class Browser browserStyle
+    class ECR,S3 storageStyle
+    class Bedrock,OpenAI aiStyle
+    class External externalStyle
+    class AWS awsStyle
+    class AppRunner appRunnerStyle
+    class Storage storageGroupStyle
+    class AI aiGroupStyle
+```
+
+**Key Components:**
+- **FastAPI Service**: HTTP API endpoint for scraping requests
+- **AI Agent**: Orchestrates the workflow using AWS Bedrock (Claude)
+- **MCP Server**: Model Context Protocol server handling scraping logic
+- **Playwright Browser**: Headless browser for web scraping
+- **AWS ECR**: Stores Docker container images
+- **AWS S3**: Stores scraped data with date partitioning
+- **OpenAI Platform**: Tracing/observability only (no cost)
+
+---
+
 ## Data Format
 
 Each project record includes:
@@ -103,7 +190,7 @@ cp .env.tmpl .env
 Required variables:
 
 ```bash
-# OpenAI API Key (for AI agent)
+# OpenAI API Key (for AI agent tracing only - no cost incurred)
 OPENAI_API_KEY=sk-your-openai-key
 
 # AWS Configuration (for local development only)
@@ -116,7 +203,9 @@ S3_BUCKET=your-bucket-name
 S3_PREFIX=scrapers/up-rera-scraper-app-runner
 ```
 
-**Important:** Never commit the `.env` file with real credentials to version control!
+**Important Notes:**
+- Never commit the `.env` file with real credentials to version control!
+- **OPENAI_API_KEY usage**: This key is used **only for tracing/observability** purposes. No API calls are made to OpenAI models, so **$0 will be charged**. The key enables you to view execution traces in the [OpenAI Platform](https://platform.openai.com/traces) for debugging and monitoring agent workflows.
 
 ---
 
